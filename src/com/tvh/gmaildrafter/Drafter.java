@@ -68,9 +68,13 @@ public class Drafter {
 
         options.addOption(OptionBuilder.withLongOpt("attachmentnames").hasArgs().withArgName("filename,filename,...").withValueSeparator(',').withDescription("Attachment names").create("n"));
 
-        options.addOption(OptionBuilder.withLongOpt("to").hasArgs().withArgName("some@somewhere.com,someoneelse@someotherplace.com,...").withValueSeparator(',').withDescription("destination").create("t"));
+        options.addOption(OptionBuilder.withLongOpt("to").hasArgs().withArgName("foo@bar.com,oof@rab.com,...").withValueSeparator(',').withDescription("destination").create("t"));
 
         options.addOption(new Option("d", "deletebody", false, "Delete bodyfile after sending."));
+        
+        options.addOption(new Option(null,"immediate",false,"Immediately send, don't open draft first."));
+        options.addOption(OptionBuilder.withLongOpt("cc").hasArgs().withArgName("foo@bar1.com,foo@rba.com").withValueSeparator(',').withDescription("cc").create("c"));
+        options.addOption(OptionBuilder.withLongOpt("bcc").hasArgs().withArgName("foo@bar2.com,ofo@bar.com").withValueSeparator(',').withDescription("bcc").create());
 
         return options;
 
@@ -103,21 +107,22 @@ public class Drafter {
                 emailBody = Util.readEntireStdin();
             }
 
-            if (cmd.hasOption("subject")) {
+            if (cmd.hasOption("subject")) 
                 emailSubject = cmd.getOptionValue("subject");
-            }
-
-
+            
             String username = null;
-            if (cmd.hasOption("username")) {
+            if (cmd.hasOption("username")) 
                 username = cmd.getOptionValue("username");
-            }
-
+            
             String password = null;
-            if (cmd.hasOption("password")) {
+            if (cmd.hasOption("password")) 
                 password = cmd.getOptionValue("password");
-            }
-
+                        
+            String[] bcc = cmd.getOptionValues("bcc");
+            String[] cc = cmd.getOptionValues("cc");
+            
+            Boolean sendImmediately = cmd.hasOption("immediate");
+            
             String[] attachments = cmd.getOptionValues("attachments");
             String[] attachmentnames = cmd.getOptionValues("attachmentnames");
             String[] destinations = cmd.getOptionValues("to");
@@ -128,7 +133,15 @@ public class Drafter {
                 boolean success = false;
                 while (!success) {
                     try {
-                        composeMail(credentials, emailSubject, emailBody, attachments, attachmentnames, destinations);
+                        composeMail(credentials, 
+                                    emailSubject, 
+                                    emailBody, 
+                                    attachments, 
+                                    attachmentnames, 
+                                    destinations,
+                                    cc,
+                                    bcc,
+                                    sendImmediately);
                         success = true;
                     } catch (AuthenticationFailedException e) {
                         JOptionPane.showMessageDialog(null, "Invalid login, please try again!");
@@ -155,11 +168,29 @@ public class Drafter {
         System.exit(0);
 
     }
+    
+    private static InternetAddress[] stringToInternetAddress (String[] addresses) throws com.google.code.javax.mail.internet.AddressException{
+        if (addresses != null && addresses.length > 0) {
+            InternetAddress[] ia = new InternetAddress[addresses.length];
+            for (int i = 0; i < addresses.length; i++) {
+                ia[i] = new InternetAddress(addresses[i]);
+            }
+            return ia;
 
+        } else        
+            return null;
+    }
+            
+            
     private static void composeMail(Credentials credentials,
-            String subjectText, String bodyText,
-            String[] attachments, String[] attachmentnames,
-            String[] destinations) throws IOException, AuthenticationFailedException {
+            String subjectText, 
+            String bodyText,
+            String[] attachments, 
+            String[] attachmentnames,
+            String[] destinations,
+            String[] cc,
+            String[] bcc,
+            Boolean sendImmediately) throws IOException, AuthenticationFailedException {
         if (subjectText == null) {
             subjectText = "";
         }
@@ -167,14 +198,35 @@ public class Drafter {
             bodyText = "";
         }
 
-
-        Properties props = System.getProperties();
-        props.setProperty("mail.store.protocol", "imaps");
         try {
-            Session session = Session.getDefaultInstance(props, null);
-            URLName url = new URLName("imaps://imap.gmail.com");
-            IMAPSSLStore store = new IMAPSSLStore(session, url);
-            store.connect(credentials.getUsername(), credentials.getPassword());
+            Properties props = null; 
+            Session session = null;
+            if (!sendImmediately) { 
+                props = System.getProperties();
+                props.setProperty("mail.store.protocol", "imaps");
+                session = Session.getDefaultInstance(props, null);
+            }
+            else {
+                props = new Properties();
+                props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.socketFactory.port", "465");
+		props.put("mail.smtp.socketFactory.class",
+				"javax.net.ssl.SSLSocketFactory");
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.port", "465");
+                final String username = credentials.getUsername();
+                final String password = credentials.getPassword();
+                
+                session = Session.getInstance(props, 
+                        new  Authenticator() {
+                            protected PasswordAuthentication getPasswordAuthentication() {
+                                    return new PasswordAuthentication(username, password );
+                            } 
+                        }
+                        );
+            }
+            
+            
 
             String signature = Signature.getSignature(credentials);
             if (signature == null) 
@@ -220,65 +272,73 @@ public class Drafter {
                 }
             }
             draftMail.setContent(parts);
-            if (destinations != null && destinations.length > 0) {
-                InternetAddress[] toUsers = new InternetAddress[destinations.length];
-                for (int i = 0; i < destinations.length; i++) {
-                    toUsers[i] = new InternetAddress(destinations[i]);
-                }
-                draftMail.setRecipients(Message.RecipientType.TO, toUsers);
+            if (destinations != null && destinations.length > 0) 
+                draftMail.setRecipients(Message.RecipientType.TO, stringToInternetAddress(destinations));
+            if (cc != null && cc.length > 0) 
+                draftMail.setRecipients(Message.RecipientType.CC , stringToInternetAddress(cc));
+            if (bcc != null && bcc.length > 0) 
+                draftMail.setRecipients(Message.RecipientType.BCC , stringToInternetAddress(bcc));
+           
 
-            }
+
+            if (sendImmediately) {
+                Transport.send(draftMail);
+            } else {
+                URLName url = new URLName("imaps://imap.gmail.com");
+                IMAPSSLStore store = new IMAPSSLStore(session, url);
+                store.connect(credentials.getUsername(), credentials.getPassword());
 
 
-            Folder[] f = store.getDefaultFolder().xlist("*");
-            long threadId = 0;
-            for (Folder fd : f) {
-                IMAPFolder folder = (IMAPFolder) fd;
-                boolean thisIsDrafts = false;
-                String atts[] = folder.getAttributes();
-                for (String a : atts) {
-                    if (a.equalsIgnoreCase("\\Drafts")) {
-                        thisIsDrafts = true;
-                        break;
+                Folder[] f = store.getDefaultFolder().xlist("*");
+                long threadId = 0;
+                for (Folder fd : f) {
+                    IMAPFolder folder = (IMAPFolder) fd;
+                    boolean thisIsDrafts = false;
+                    String atts[] = folder.getAttributes();
+                    for (String a : atts) {
+                        if (a.equalsIgnoreCase("\\Drafts")) {
+                            thisIsDrafts = true;
+                            break;
+                        }
+                    }
+
+                    if (thisIsDrafts) {
+
+                        folder.open(Folder.READ_WRITE);
+
+                        Message[] messages = new Message[1];
+                        messages[0] = draftMail;
+                        folder.appendMessages(messages);
+
+                        /*
+                        * Determine the Google Message Id, needed to open it in the
+                        * browser. Because we just created the message it is
+                        * reasonable to assume it is the last message in the draft
+                        * folder. If this turns out not to be the case we could
+                        * start creating the message with a random unique dummy
+                        * subject, find it using that subject and then modify the
+                        * subject to what it was supposed to be.
+                        */
+                        messages[0] = folder.getMessage(folder.getMessageCount());
+                        FetchProfile fp = new FetchProfile();
+                        fp.add(IMAPFolder.FetchProfileItem.X_GM_THRID);
+                        folder.fetch(messages, fp);
+                        IMAPMessage googleMessage = (IMAPMessage) messages[0];
+                        threadId = googleMessage.getGoogleMessageThreadId();
+                        folder.close(false);
                     }
                 }
-
-                if (thisIsDrafts) {
-                    
-                    folder.open(Folder.READ_WRITE);
-
-                    Message[] messages = new Message[1];
-                    messages[0] = draftMail;
-                    folder.appendMessages(messages);
-
-                    /*
-                     * Determine the Google Message Id, needed to open it in the
-                     * browser. Because we just created the message it is
-                     * reasonable to assume it is the last message in the draft
-                     * folder. If this turns out not to be the case we could
-                     * start creating the message with a random unique dummy
-                     * subject, find it using that subject and then modify the
-                     * subject to what it was supposed to be.
-                     */
-                    messages[0] = folder.getMessage(folder.getMessageCount());
-                    FetchProfile fp = new FetchProfile();
-                    fp.add(IMAPFolder.FetchProfileItem.X_GM_THRID);
-                    folder.fetch(messages, fp);
-                    IMAPMessage googleMessage = (IMAPMessage) messages[0];
-                    threadId = googleMessage.getGoogleMessageThreadId();
-                    folder.close(false);
+                if (threadId == 0) {
+                    System.exit(6);
                 }
-            }
-            if (threadId == 0) {
-                System.exit(6);
-            }
 
 
-            store.close();
+                store.close();
 
-            // Open the message in the default browser
-            Runtime rt = Runtime.getRuntime();
-            rt.exec("rundll32 url.dll,FileProtocolHandler https://mail.google.com/mail/#drafts/" + Long.toHexString(threadId));
+                // Open the message in the default browser
+                Runtime rt = Runtime.getRuntime();
+                rt.exec("rundll32 url.dll,FileProtocolHandler https://mail.google.com/mail/#drafts/" + Long.toHexString(threadId));
+            } // else branch for sendImmediately
 
         } catch (NoSuchProviderException e) {
             e.printStackTrace();
