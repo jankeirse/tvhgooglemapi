@@ -240,7 +240,7 @@ public class Drafter {
 
             if (bodyText.toLowerCase().indexOf("<body") < 0) // rough guess to see if the body is html
             {
-                bodyText = "<html><body>" + StringEscapeUtils.escapeHtml(bodyText) + "<br>"
+                bodyText = "<html><body>" + StringEscapeUtils.escapeHtml(bodyText).replace("\n", "<br />" +  "\n") + "<br>"
                         + "</body></html>";
             }
 

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "tvhgooglemapi"
-#define MyAppVersion "0.2"
+#define MyAppVersion "0.4"
 #define MyAppPublisher "TVH Corporate services NV"
 #define MyAppURL "http://code.google.com/p/tvhgooglemapi/"
 
@@ -13,7 +13,7 @@
 AppId={{4E637CBF-B2AD-4CA1-AE0E-9445449380CB}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+; AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -22,7 +22,7 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile=LICENSE-2.0.txt
 OutputDir=installer
-OutputBaseFilename=tvhgooglemapisetup
+OutputBaseFilename=tvhgooglemapisetup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes                          
 

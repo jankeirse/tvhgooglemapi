@@ -78,7 +78,7 @@ public class GetCredentials extends javax.swing.JDialog {
         setTitle("Provide Google login credentials");
 
         jLblUsername.setLabelFor(jTxtUsername);
-        jLblUsername.setText("Username");
+        jLblUsername.setText("Email Address");
 
         jLblPassword.setLabelFor(jPassword);
         jLblPassword.setText("Password");
