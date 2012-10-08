@@ -14,10 +14,6 @@ uploads the mail as a draft and opens the draft in your default webbrowser.
 In theory gmaildrafter could also be used to implement other 'send mail' 
 functions. 
  
-For the application to work you need The Microsoft Visual C++ 2010 
-Redistributable Package installed. This is installed on most Windows computers
-but if you don't have it yet you can get it here:
-http://www.microsoft.com/en-us/download/details.aspx?id=5555
 In addition to that you also need a Java Runtime (at least version 1.6)
 You can get one here: http://www.oracle.com/technetwork/java/index.html  
 
