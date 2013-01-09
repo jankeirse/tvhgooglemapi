@@ -23,9 +23,9 @@ import java.io.*;
 public class Util {
 
     // TODO ask around if there is a better way to do this
-    public static String readEntireStdin() {
+    public static String readEntireStdin() throws UnsupportedEncodingException {
         String result = "";
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in,"UTF-8"));
         String s;
         try {
             while ((s = br.readLine()) != null) {
