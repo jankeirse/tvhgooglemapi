@@ -240,7 +240,7 @@ public class Drafter {
 
             if (bodyText.toLowerCase().indexOf("<body") < 0) // rough guess to see if the body is html
             {
-                bodyText = "<html><body>" + StringEscapeUtils.escapeHtml(bodyText).replace("\n", "<br />" +  "\n") + "<br>"
+                bodyText = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>" + StringEscapeUtils.escapeHtml(bodyText).replace("\n", "<br />" +  "\n") + "<br>"
                         + "</body></html>";
             }
 
@@ -253,7 +253,8 @@ public class Drafter {
                 b.replace(bodyText.lastIndexOf("</body>"), bodyText.lastIndexOf("</body>") + 7, "<br>" + signature + "</body>");
                 bodyText = b.toString();
             }
-            body.setContent(bodyText, "text/html");
+            
+            body.setContent(bodyText, "text/html; charset=utf-8");
 
             body.setDisposition("inline");
 

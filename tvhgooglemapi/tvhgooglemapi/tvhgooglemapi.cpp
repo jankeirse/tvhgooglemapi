@@ -166,7 +166,7 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 	   memset(&siStartupInfo, 0, sizeof(siStartupInfo));
 	   memset(&piProcessInfo, 0, sizeof(piProcessInfo));
 	   siStartupInfo.cb = sizeof(siStartupInfo);
-	   string parameters = " /C java.exe -jar \"" + dllInstallationPath + "\\gmaildrafter.jar\" -s \"" + subject + "\"";
+	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" + dllInstallationPath + "\\gmaildrafter.jar\" -s \"" + subject + "\"";
 	   for(unsigned int i = 0; i < lpMessage->nFileCount; i++) {
 		   parameters = parameters + " -a \"" +  lpMessage->lpFiles[i].lpszPathName + "\"" ;
 		   if (lpMessage->lpFiles[i].lpszFileName != NULL) 
