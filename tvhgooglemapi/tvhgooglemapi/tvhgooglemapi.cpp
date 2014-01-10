@@ -80,7 +80,7 @@ std::string getInstallationPath(){
 
 #define BUFSIZE 1024
 
-int writeTempFile(string fileContent, string* result){
+int writeTempFile(wstring fileContent, string* result){
 	
     DWORD dwRetVal = 0;
     UINT uRetVal   = 0;
@@ -106,7 +106,7 @@ int writeTempFile(string fileContent, string* result){
         return (3);
     }
 
-	ofstream tempfile;
+	wofstream tempfile;
 
 	tempfile.open(szTempFileName);
 	tempfile << fileContent ;
@@ -142,23 +142,50 @@ ULONG FAR PASCAL MAPILogoff (LHANDLE aSession, ULONG aUIParam,
 	return SUCCESS_SUCCESS;
 }
 
+std::wstring ToWString( const std::string& strText )
+    {
+      std::wstring      wstrResult;
+
+      wstrResult.resize( strText.length() );
+
+      typedef std::codecvt<wchar_t, char, mbstate_t> widecvt;
+
+      std::locale     locGlob;
+
+      std::locale::global( locGlob );
+
+      const widecvt& cvt( std::use_facet<widecvt>( locGlob ) );
+
+      mbstate_t   State;
+
+      const char* cTemp;
+      wchar_t*    wTemp;
+
+      cvt.in( State,
+              &strText[0], &strText[0] + strText.length(), cTemp,
+              (wchar_t*)&wstrResult[0], &wstrResult[0] + wstrResult.length(), wTemp );
+                  
+      return wstrResult;
+}
 
 ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage lpMessage,
                 FLAGS flFlags, ULONG ulReserved )
 {
 	ULONG exitCode = MAPI_E_FAILURE ;
    if(lpMessage->nFileCount > 0 ) {
-	   string subject;
-	   if (lpMessage->lpszSubject != NULL)
-		   subject = lpMessage->lpszSubject;
+	   wstring subject;
+	   if (lpMessage->lpszSubject != NULL) {
+		   subject = ToWString(lpMessage->lpszSubject);
+		   //subject = L"=?utf-8?Q?" + subject + L"?=";
+	   }
 	   else 
-		   subject = "";
+		   subject = L"";
 	   
-	   string body;
+	   wstring body;
 	   if (lpMessage->lpszNoteText != NULL)
-			body = lpMessage->lpszNoteText;
+			body = ToWString(lpMessage->lpszNoteText);
 	   else
-			body = "";
+			body = L"";
 	   boost::replace_all(subject,"\\","\\\\");
 	   boost::replace_all(subject,"\"","\\\"");
 	   STARTUPINFOA siStartupInfo;
@@ -166,7 +193,7 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 	   memset(&siStartupInfo, 0, sizeof(siStartupInfo));
 	   memset(&piProcessInfo, 0, sizeof(piProcessInfo));
 	   siStartupInfo.cb = sizeof(siStartupInfo);
-	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" + dllInstallationPath + "\\gmaildrafter.jar\" -s \"" + subject + "\"";
+	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" + dllInstallationPath + "\\gmaildrafter.jar\" ";
 	   for(unsigned int i = 0; i < lpMessage->nFileCount; i++) {
 		   parameters = parameters + " -a \"" +  lpMessage->lpFiles[i].lpszPathName + "\"" ;
 		   if (lpMessage->lpFiles[i].lpszFileName != NULL) 
@@ -174,8 +201,16 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 	   }
 	   
 	   for (unsigned int i = 0; i < lpMessage->nRecipCount; i++) {
-		   if (lpMessage->lpRecips[i].lpszAddress != NULL)
-			parameters = parameters + " -t \"" + lpMessage->lpRecips[i].lpszAddress + "\"" ;
+		   if (lpMessage->lpRecips[i].lpszName != NULL || lpMessage->lpRecips[i].lpszAddress != NULL) {
+			   parameters = parameters + " -t \"";
+			   if (lpMessage->lpRecips[i].lpszName != NULL)
+				    parameters = parameters + lpMessage->lpRecips[i].lpszName ;
+			   if (lpMessage->lpRecips[i].lpszName != NULL && lpMessage->lpRecips[i].lpszAddress != NULL)
+				    parameters = parameters + " " + parameters;
+			   if (lpMessage->lpRecips[i].lpszAddress != NULL)
+					parameters = parameters + "<" + lpMessage->lpRecips[i].lpszAddress  + ">" ;
+			   parameters = parameters + "\"";
+		   }
 	   } 
 	   
 	   string bodyfile;
@@ -185,6 +220,14 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 		   return MAPI_E_FAILURE;
 	   } else 
 		   parameters = parameters + " -b \"" + bodyfile + "\" -d";
+
+	   string subjectfile ;
+	   writeResult = writeTempFile(subject, &subjectfile);
+	   if (writeResult != 0) {
+		   MessageBox(NULL,L"Could not send your mail, writing subjectfile failed!",L"MAPI Error",MB_ICONERROR | MB_TOPMOST);
+		   return MAPI_E_FAILURE;
+	   } else
+		   parameters = parameters + " --subjectfile \"" + subjectfile + "\" --deletesubjectfile";
 		   
 	   LPSTR lpparameters = (LPSTR)(parameters.c_str());
 	   if( CreateProcessA(  "c:\\windows\\system32\\cmd.exe",	
@@ -212,6 +255,8 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 					exitCode = MAPI_E_USER_ABORT;
 				else {
 					string errormessage = "Could not send your mail, exitcode of gmaildrafter was " + to_string<DWORD>(dwExitCode, std::hex);
+					if (dwExitCode == 1)
+						errormessage = errormessage + "\nMost likely reasons are that java is not installed, older than 1.7 or not in the WINDOWS PATH variable.";
 					MessageBox(NULL,s2ws(errormessage).c_str(),L"MAPI Error",MB_ICONERROR | MB_TOPMOST);
 					exitCode = MAPI_E_FAILURE;   
 				}

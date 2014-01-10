@@ -64,6 +64,7 @@ public class Drafter {
         options.addOption(OptionBuilder.withLongOpt("password").hasArg().withArgName("google password").withDescription("Your Google password (caution: providing this on the commandline can be a security problem).").create());
 
         options.addOption(OptionBuilder.withLongOpt("subject").withArgName("text").hasArg().withDescription("Subject of the mail").create("s"));
+        options.addOption(OptionBuilder.withLongOpt("subjectfile").withArgName("filename").hasArg().withDescription("File containing the subject of the mail (UTF-8)").create());
         options.addOption(OptionBuilder.withLongOpt("attachments").hasArgs().withArgName("filename,filename,...").withValueSeparator(',').withDescription("Attachments").create("a"));
 
         options.addOption(OptionBuilder.withLongOpt("attachmentnames").hasArgs().withArgName("filename,filename,...").withValueSeparator(',').withDescription("Attachment names").create("n"));
@@ -71,6 +72,7 @@ public class Drafter {
         options.addOption(OptionBuilder.withLongOpt("to").hasArgs().withArgName("foo@bar.com,oof@rab.com,...").withValueSeparator(',').withDescription("destination").create("t"));
 
         options.addOption(new Option("d", "deletebody", false, "Delete bodyfile after sending."));
+        options.addOption(new Option(null, "deletesubjectfile", false, "Delete subjectfile after sending."));
         
         options.addOption(new Option(null,"immediate",false,"Immediately send, don't open draft first."));
         options.addOption(OptionBuilder.withLongOpt("cc").hasArgs().withArgName("foo@bar1.com,foo@rba.com").withValueSeparator(',').withDescription("cc").create("c"));
@@ -109,6 +111,13 @@ public class Drafter {
 
             if (cmd.hasOption("subject")) 
                 emailSubject = cmd.getOptionValue("subject");
+            else if (cmd.hasOption("subjectfile")) {
+                String subjectFile = cmd.getOptionValue("subjectfile");
+                File subject = new File(subjectFile);
+                emailSubject = FileUtils.readFileToString(subject);
+                if (cmd.hasOption("deletesubjectfile"))
+                    subject.delete();
+            }
             
             String username = null;
             if (cmd.hasOption("username")) 
@@ -155,7 +164,7 @@ public class Drafter {
         } catch (ParseException ex) {
             javax.swing.JOptionPane.showMessageDialog(null, ex.getMessage());
             printHelpMessage(options);
-            System.exit(1);
+            System.exit(7);
         } catch (IOException ex) {
             System.out.println("IO Exception " + ex.getLocalizedMessage());
             printHelpMessage(options);
@@ -279,7 +288,7 @@ public class Drafter {
                 draftMail.setRecipients(Message.RecipientType.CC , stringToInternetAddress(cc));
             if (bcc != null && bcc.length > 0) 
                 draftMail.setRecipients(Message.RecipientType.BCC , stringToInternetAddress(bcc));
-           
+            draftMail.setFlag(Flags.Flag.SEEN, true);
 
 
             if (sendImmediately) {
@@ -338,7 +347,21 @@ public class Drafter {
 
                 // Open the message in the default browser
                 Runtime rt = Runtime.getRuntime();
-                rt.exec("rundll32 url.dll,FileProtocolHandler https://mail.google.com/mail/#drafts/" + Long.toHexString(threadId));
+                String drafturl = "https://mail.google.com/mail/#drafts/" + Long.toHexString(threadId);
+                
+                File chrome = new File("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
+                if (!chrome.exists()) 
+                    chrome = new File("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
+                if (!chrome.exists()) {
+                    // Chrome not found, using default browser
+                    rt.exec("rundll32 url.dll,FileProtocolHandler " + drafturl);
+                } else {
+                    String[] commandLine = new String[2];
+                    commandLine[0] = chrome.getPath();
+                    commandLine[1] = drafturl;
+                    rt.exec(commandLine);
+                }
+                
             } // else branch for sendImmediately
 
         } catch (NoSuchProviderException e) {
