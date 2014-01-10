@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "tvhgooglemapi"
-#define MyAppVersion "0.5"
+#include "version.iss"
 #define MyAppPublisher "TVH Corporate services NV"
 #define MyAppURL "http://code.google.com/p/tvhgooglemapi/"
 
@@ -37,6 +37,7 @@ Source: "dist\gmaildrafter.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-2.0.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "version.iss"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
