@@ -46,12 +46,25 @@ password on a computer you don't trust.
 
 If you want to automatically attach a signature to your email you can put a file 
 in %USERPROFILE%\.gmaildrafter\signatures\yourusername@yourdomainname.com.html 
-which contains the text.     
+which contains the text in html.
+The folder signatures will not be there. You have to create it yourself. Then 
+you need to create a html file in that folder that has as name:
+matching your email address followed by .html. 
+If you never created a html file there's a quick writeup here: 
+http://csis.pace.edu/~wolf/HTML/htmlnotepad.htm
+There are many more examples if you google for 'create html file'. 
+Note that if you use images they will have to be online (img src="http:///... it 
+won't work if the image is on your local harddrive.
+One detail: The file needs to contain at least one html closing tag. (</...>)
+If this is not the case the program will assume it is plain text and escape all 
+html characters, as a result the entire signature would be on a single line in 
+the final mail.
 
 If you want to compile the dll yourself you'll need Microsoft Visual C++ 2010 
 Express Edition 
 (http://www.microsoft.com/visualstudio/en-us/products/2010-editions/visual-cpp-express) 
-and boost (http://www.boost.org/).
+and boost (http://www.boost.org/). (Other compilers might work but have not been 
+tested.)
 
 The Java application uses Apache Commons CLI (http://commons.apache.org/cli/), 
 Apache Commons IO (http://commons.apache.org/io/) and Apache Commons Lang
@@ -60,4 +73,16 @@ implementation of JavaMail (https://code.google.com/p/java-gmail-imap/).
 The sources include a Netbeans Project, but another ide should do just fine.
 
 The installer is made with innosetup.    
-     
+
+If you have a problem with the application please report them at 
+https://code.google.com/p/tvhgooglemapi/issues/list
+If your problem refers to gmail exit code 1 please create a file in 
+c:\windows\temp\debuggmaildrafter.txt , try to send a mail again and when there 
+is a popup 
+'Going to execute the last command in c:\windows\temp\debuggmaildrafter.txt'
+before confirming this popup, open the file 
+c:\windows\temp\debuggmaildrafter.txt and run the last line in dos 
+(Start->execute->cmd.exe)
+It will most likely provide valueable information.
+
+         
