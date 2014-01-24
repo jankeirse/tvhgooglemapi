@@ -117,6 +117,12 @@ int writeTempFile(wstring fileContent, string* result){
 
 }
 
+bool fexists(const char *filename)
+{
+  ifstream ifile(filename);
+  return ifile;
+}
+
 BOOL WINAPI DllMain(HINSTANCE aInstance, DWORD aReason, LPVOID aReserved)
 {
 	if (aReason == DLL_PROCESS_ATTACH) dllInstallationPath = getInstallationPath();		
@@ -193,23 +199,34 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 	   memset(&siStartupInfo, 0, sizeof(siStartupInfo));
 	   memset(&piProcessInfo, 0, sizeof(piProcessInfo));
 	   siStartupInfo.cb = sizeof(siStartupInfo);
-	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" + dllInstallationPath + "\\gmaildrafter.jar\" ";
+	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" ;
+	   parameters.append( dllInstallationPath);
+	   parameters.append("\\gmaildrafter.jar\" ");
 	   for(unsigned int i = 0; i < lpMessage->nFileCount; i++) {
-		   parameters = parameters + " -a \"" +  lpMessage->lpFiles[i].lpszPathName + "\"" ;
-		   if (lpMessage->lpFiles[i].lpszFileName != NULL) 
-			  parameters = parameters +  " -n \"" + lpMessage->lpFiles[i].lpszFileName + "\""  ;
+		   parameters.append(" -a \"");
+		   parameters.append(lpMessage->lpFiles[i].lpszPathName);
+		   parameters.append("\"");
+		   if (lpMessage->lpFiles[i].lpszFileName != NULL) {
+			   parameters.append(" -n \"");
+			   parameters.append(lpMessage->lpFiles[i].lpszFileName);
+			   parameters.append("\"" );
+		   }
 	   }
 	   
 	   for (unsigned int i = 0; i < lpMessage->nRecipCount; i++) {
 		   if (lpMessage->lpRecips[i].lpszName != NULL || lpMessage->lpRecips[i].lpszAddress != NULL) {
-			   parameters = parameters + " -t \"";
+			   parameters.append(" -t \"");
+			   
 			   if (lpMessage->lpRecips[i].lpszName != NULL)
-				    parameters = parameters + lpMessage->lpRecips[i].lpszName ;
-			   if (lpMessage->lpRecips[i].lpszName != NULL && lpMessage->lpRecips[i].lpszAddress != NULL)
-				    parameters = parameters + " " + parameters;
-			   if (lpMessage->lpRecips[i].lpszAddress != NULL)
-					parameters = parameters + "<" + lpMessage->lpRecips[i].lpszAddress  + ">" ;
-			   parameters = parameters + "\"";
+				   parameters.append(lpMessage->lpRecips[i].lpszName );
+			   if (lpMessage->lpRecips[i].lpszName != NULL && lpMessage->lpRecips[i].lpszAddress != NULL) 
+				   parameters.append(" ");
+			   if (lpMessage->lpRecips[i].lpszAddress != NULL){
+				   parameters.append("<");
+				   parameters.append(lpMessage->lpRecips[i].lpszAddress);
+				   parameters.append(">");
+			   }
+			   parameters.append("\"");
 		   }
 	   } 
 	   
@@ -230,6 +247,16 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 		   parameters = parameters + " --subjectfile \"" + subjectfile + "\" --deletesubjectfile";
 		   
 	   LPSTR lpparameters = (LPSTR)(parameters.c_str());
+	   if (fexists("c:\\windows\\temp\\debuggmaildrafter.txt")){
+		    wofstream tempfile;
+			tempfile.open("c:\\windows\\temp\\debuggmaildrafter.txt",ios::app);
+			tempfile << "c:\\windows\\system32\\cmd.exe ";
+			tempfile << lpparameters;
+			tempfile << "\n";
+			tempfile.close();
+			MessageBox(NULL,L"Going to execute the last command in c:\\windows\\temp\\debuggmaildrafter.txt.",L"MAPI Debugging",MB_ICONERROR | MB_TOPMOST);
+	   }
+
 	   if( CreateProcessA(  "c:\\windows\\system32\\cmd.exe",	
 							lpparameters, 
 							0, 
@@ -334,17 +361,20 @@ ULONG FAR PASCAL MAPIDetails(LHANDLE lhSession, ULONG ulUIParam, lpMapiRecipDesc
     return MAPI_E_NOT_SUPPORTED;
 }
 
-ULONG FAR PASCAL MAPIResolveName(LHANDLE lhSession, ULONG ulUIParam, LPTSTR lpszName,
-                                 FLAGS flFlags, ULONG ulReserved, lpMapiRecipDesc FAR *lppRecip)
+ULONG FAR PASCAL MAPIResolveName(LHANDLE lhSession, ULONG ulUIParam, LPSTR lpszName,
+                                 FLAGS flFlags, ULONG ulReserved,  lpMapiRecipDesc FAR *lppRecip)
 {
-  MessageBox(NULL,L"Your application called mapiresolvename, we haven't implemented that!",L"MAPI tracing",MB_ICONERROR);
-  return MAPI_E_NOT_SUPPORTED;
+	*lppRecip = new MapiRecipDesc();	
+	(*lppRecip)->lpszName = lpszName; 
+	(*lppRecip)->lpszAddress = lpszName; 
+	return SUCCESS_SUCCESS;
 }
 
 ULONG FAR PASCAL MAPIFreeBuffer(LPVOID pv)
 {
-  MessageBox(NULL,L"Your application called MAPIFreeBuffer, we haven't implemented that!",L"MAPI tracing",MB_ICONERROR);
-  pv = NULL;
-  return SUCCESS_SUCCESS; 
+
+	delete pv;
+	pv = NULL;
+    return SUCCESS_SUCCESS; 
 }
 
