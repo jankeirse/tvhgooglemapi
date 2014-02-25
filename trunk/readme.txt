@@ -85,4 +85,4 @@ c:\windows\temp\debuggmaildrafter.txt and run the last line in dos
 (Start->execute->cmd.exe)
 It will most likely provide valueable information.
 
-         
+By default tvhgooglemapi will open the draft in a new browser tab/window. If you are using Google Chrome there is an extension that makes sure that only one tab for gmail is open (and also only one for google calendar,...) Using this extension will cause the draft to be opened in the tab where you had gmail open, some people may find that desireable. You can find it here: https://chrome.google.com/webstore/detail/tab-fixer-for-google-apps/cplbkecindmpapmnffepmnbiogpllcni/details It's support page is here: https://code.google.com/p/google-apps-tab-fixer/wiki/FAQ         
