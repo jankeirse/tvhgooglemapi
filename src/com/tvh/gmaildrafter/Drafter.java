@@ -276,7 +276,8 @@ public class Drafter {
                     if (attachmentnames != null && attachmentnames.length > i) {
                         attachment.setFileName(attachmentnames[i]);
                     } else {
-                        attachment.setFileName(attachments[i]);
+                        File file = new File(attachments[i]);
+                        attachment.setFileName(file.getName());                        
                     }
                     parts.addBodyPart(attachment);
                 }
