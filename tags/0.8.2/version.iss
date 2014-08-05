@@ -1,0 +1,1 @@
+#define MyAppVersion "0.8.2"
