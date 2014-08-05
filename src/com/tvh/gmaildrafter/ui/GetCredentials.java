@@ -23,6 +23,7 @@ import com.tvh.gmaildrafter.Credentials;
 import com.tvh.gmaildrafter.PasswordStore;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
 public class GetCredentials extends javax.swing.JDialog {
@@ -48,12 +49,16 @@ public class GetCredentials extends javax.swing.JDialog {
         this.getRootPane().setDefaultButton(jBtnOk);
         
         centerScreen();
+        
+        setAlwaysOnTop(true);
+        
         if (username != null) {
             jTxtUsername.setText(username);
         }
         if (username != null && username != "") {
             jPassword.requestFocusInWindow();
         }
+        /* TODO: have a look at http://stackoverflow.com/a/596141/1389704 */
 
     }
 
@@ -151,8 +156,16 @@ public class GetCredentials extends javax.swing.JDialog {
         return cred;
     }
     private void jBtnOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnOkActionPerformed
-        // TODO add your handling code here:
-        Credentials cred = new Credentials(jTxtUsername.getText(), new String(jPassword.getPassword()));
+        
+        String username = jTxtUsername.getText();
+        String password = new String(jPassword.getPassword());
+        
+        if ("".equals(jTxtUsername.getText()) || "".equals(new String(jPassword.getPassword())) ) {
+            JOptionPane.showMessageDialog(null, "Provide email address and password!");
+            return;
+        }
+            
+        Credentials cred = new Credentials(username, password);
         if (Authenticater.testCredentials(cred)) {
             if (jChkStore.isSelected()) {
                 PasswordStore store = new PasswordStore();
