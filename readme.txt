@@ -75,7 +75,7 @@ The sources include a Netbeans Project, but another ide should do just fine.
 The installer is made with innosetup.    
 
 If you have a problem with the application please report them at 
-https://code.google.com/p/tvhgooglemapi/issues/list
+https://github.com/jankeirse/tvhgooglemapi/issues
 If your problem refers to gmail exit code 1 please create a file in 
 c:\windows\temp\debuggmaildrafter.txt , try to send a mail again and when there 
 is a popup 
