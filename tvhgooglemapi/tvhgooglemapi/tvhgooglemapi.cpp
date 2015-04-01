@@ -120,7 +120,7 @@ int writeTempFile(wstring fileContent, string* result){
 bool fexists(const char *filename)
 {
   ifstream ifile(filename);
-  return ifile;
+  return ifile.good();
 }
 
 BOOL WINAPI DllMain(HINSTANCE aInstance, DWORD aReason, LPVOID aReserved)
@@ -178,12 +178,12 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
                 FLAGS flFlags, ULONG ulReserved )
 {
 	ULONG exitCode = MAPI_E_FAILURE ;
-   if(lpMessage->nFileCount > 0 ) {
-	   wstring subject;
-	   if (lpMessage->lpszSubject != NULL) {
-		   subject = ToWString(lpMessage->lpszSubject);
+   
+	wstring subject;
+	if (lpMessage->lpszSubject != NULL) {
+	     subject = ToWString(lpMessage->lpszSubject);
 		   //subject = L"=?utf-8?Q?" + subject + L"?=";
-	   }
+	}
 	   else 
 		   subject = L"";
 	   
@@ -202,16 +202,17 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 	   string parameters = " /C java.exe -Dfile.encoding=UTF8 -jar \"" ;
 	   parameters.append( dllInstallationPath);
 	   parameters.append("\\gmaildrafter.jar\" ");
-	   for(unsigned int i = 0; i < lpMessage->nFileCount; i++) {
-		   parameters.append(" -a \"");
-		   parameters.append(lpMessage->lpFiles[i].lpszPathName);
-		   parameters.append("\"");
-		   if (lpMessage->lpFiles[i].lpszFileName != NULL) {
-			   parameters.append(" -n \"");
-			   parameters.append(lpMessage->lpFiles[i].lpszFileName);
-			   parameters.append("\"" );
-		   }
-	   }
+	   if(lpMessage->nFileCount > 0 ) {
+	   	for(unsigned int i = 0; i < lpMessage->nFileCount; i++) {
+			   parameters.append(" -a \"");
+		   	parameters.append(lpMessage->lpFiles[i].lpszPathName);
+		   	parameters.append("\"");
+		   	if (lpMessage->lpFiles[i].lpszFileName != NULL) {
+			   	parameters.append(" -n \"");
+			   	parameters.append(lpMessage->lpFiles[i].lpszFileName);
+			   	parameters.append("\"" );
+		   	}
+	   	}
 	   
 	   for (unsigned int i = 0; i < lpMessage->nRecipCount; i++) {
 		   if (lpMessage->lpRecips[i].lpszName != NULL || lpMessage->lpRecips[i].lpszAddress != NULL) {
@@ -223,7 +224,12 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 				   parameters.append(" ");
 			   if (lpMessage->lpRecips[i].lpszAddress != NULL){
 				   parameters.append("<");
-				   parameters.append(lpMessage->lpRecips[i].lpszAddress);
+				   std::string emailadd = lpMessage->lpRecips[i].lpszAddress;
+				   std::size_t found = emailadd.find(":");
+				   if (found != std::string::npos) {
+					   emailadd.erase(0, found+1);
+				   }
+				   parameters.append(emailadd);
 				   parameters.append(">");
 			   }
 			   parameters.append("\"");
@@ -291,7 +297,7 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 				exitCode = SUCCESS_SUCCESS;
 		}
 	   
-   }
+
    
 	return exitCode ; 
 }
