@@ -213,7 +213,7 @@ ULONG FAR PASCAL MAPISendMail (LHANDLE lhSession, ULONG ulUIParam, lpMapiMessage
 			   	parameters.append("\"" );
 		   	}
 	   	}
-	   
+	   }
 	   for (unsigned int i = 0; i < lpMessage->nRecipCount; i++) {
 		   if (lpMessage->lpRecips[i].lpszName != NULL || lpMessage->lpRecips[i].lpszAddress != NULL) {
 			   parameters.append(" -t \"");
