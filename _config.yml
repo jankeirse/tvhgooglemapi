@@ -1,0 +1,8 @@
+title: Tvhgooglemapi
+description: "Simplemapi provider for Google Mail (both gmail and google apps) "
+google_analytics: UA-32337117-1
+show_downloads: true
+theme: jekyll-theme-slate
+
+gems:
+  - jekyll-mentions
