@@ -1,3 +1,13 @@
+This code is deprecated and should no longer be used. It requires a complete 
+rewrite against the gmail api https://developers.google.com/gmail/api . 
+Given the availability of https://www.mapi4gmail.com/ and https://www.affixa.com/ 
+it doesn't make sense for us to do so. 
+
+The code was expected to stop working for new users on june 15th 2020 but Google
+delayed that due to COVID-19. 
+https://gsuiteupdates.googleblog.com/2019/12/less-secure-apps-oauth-google-username-password-incorrect.html
+
+
 Tvhgooglemapi and gmaildrafter are a pair of tools that can be used to make the
 following menu entries work with google mail without having to install a 
 complete mailclient like Thunderbird or Outlook.
