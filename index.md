@@ -1,3 +1,6 @@
+### Deprecation notice
+This is no longer expected to work. It should be rewritten using the GMAIL API to continue to work. Since it is no longer in use by the author or the company he works for and nobody has volunteered to do the rewrite, it's not expected to happen. 
+
 ### TVHGoogleMapi
 
 When you move to gmail or google apps you can no longer use the build in 'send to mail recipient as attachment' menu option of MS Office and other windows applications without installing a local mail client. The Right click menu of files in explorer Send To -> Mail recipient doesn't work either. Tvhgooglemapi is a simple tool that pretends to be a real mail client to windows but really only uploads the mail to the drafts folder of gmail and then opens the draft in the default webbrowser. For the user this is almost exactly the same as having the gmail web interface as the default mailclient for some windows applications (the only difference being that he has to login twice if he is not already logged in to gmail and doesn't let the tool remember the password.)
@@ -12,10 +15,10 @@ By default tvhgooglemapi will open the draft in a new browser tab/window. If you
 There are some details you might want to know in the readme: [https://raw.githubusercontent.com/jankeirse/tvhgooglemapi/master/readme.txt](https://raw.githubusercontent.com/jankeirse/tvhgooglemapi/master/readme.txt)
 
 ### Download
-The application can be downloaded here: [https://drive.google.com/folderview?id=0B5rR8r10bVzvQklLN0cxMEFFWXM&usp=sharing#list](https://drive.google.com/folderview?id=0B5rR8r10bVzvQklLN0cxMEFFWXM&usp=sharing#list)
+The application is no longer available. 
 
 ### Support and feedback
-There is no formal support plan, warranty or guarantee the application will work in your environment, but if you do run into issues and we can find some time we may be able to help. As always, test it out in a non critical environment first and sent your first mails to a test address (ie not to customers) to verify everything is working fine. For feedback or questions you may contact jan dot keirse at tvh dot com, but for bug reports please use the issue tracker: [https://github.com/jankeirse/tvhgooglemapi/issues](https://github.com/jankeirse/tvhgooglemapi/issues)
+There is no support available.
 
 ### License
 The code is licensed under the Apache 2.0 License. [http://www.apache.org/licenses/LICENSE-2.0.html](http://www.apache.org/licenses/LICENSE-2.0.html)
